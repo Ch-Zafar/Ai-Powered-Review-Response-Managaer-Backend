@@ -1,0 +1,6 @@
+customer_name,email,rating,review,date
+Ali,ali@example.com,5,"Amazing product, quality is excellent.",2026-06-20
+Sara,sara@example.com,2,Delivery was late and the product was damaged.,2026-06-21
+Ahmed,ahmed@example.com,4,Good experience but could be improved.,2026-06-22
+Fatima,fatima@example.com,1,"Very disappointed, customer support was not helpful.",2026-06-23
+Usman,usman@example.com,3,"Average product, works as expected.",2026-06-24
