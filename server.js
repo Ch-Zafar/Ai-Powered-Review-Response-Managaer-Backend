@@ -2,7 +2,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 
-const {connection} = require('./db/con')
+const {connection} = require('./db/conn')
 const express = require("express");
 const router = require("./routes/ai.Routes");
 const app = express();

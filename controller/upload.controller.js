@@ -1,7 +1,8 @@
 const fs = require("fs");
 const csv = require("csv-parser");
+const reviewModel = require("../db/models/review.schema");
 
-const uploadController = (req, res) => {
+const uploadController = async (req, res) => {
 
     if (!req.file) {
         return res.status(400).json({
@@ -16,18 +17,34 @@ const uploadController = (req, res) => {
         .on("data", (data) => {
             results.push(data);
         })
-        .on("end", () => {
-            console.log(results);
+        .on("end", async () => {
+            try {
 
-            res.json({
-                message: "CSV Uploaded Successfully",
-                data: results
-            });
+                console.log(results);
+
+                const insertedData = await reviewModel.insertMany(results);
+
+                return res.status(200).json({
+                    message: "CSV uploaded and data inserted successfully",
+                    count: insertedData.length,
+                    data: insertedData
+                });
+
+            } catch (error) {
+
+                console.log(error);
+
+                return res.status(500).json({
+                    message: "Database insertion failed",
+                    error
+                });
+            }
         })
         .on("error", (error) => {
+
             console.log(error);
 
-            res.status(500).json({
+            return res.status(500).json({
                 message: "Error reading CSV file",
                 error
             });
