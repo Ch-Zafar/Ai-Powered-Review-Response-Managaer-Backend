@@ -1,11 +1,19 @@
 const dotenv = require("dotenv");
 dotenv.config();
+
+
+const {connection} = require('./db/con')
 const express = require("express");
 const router = require("./routes/ai.Routes");
 const app = express();
 const { GoogleGenAI } = require("@google/genai");
 const { uploadRouter } = require("./routes/upload.routes");
 const PORT = process.env.PORT || 3000;
+
+
+//// for data base conection ///
+connection();
+
 app.use(express.json()); // Required for JSON requests
 
 
