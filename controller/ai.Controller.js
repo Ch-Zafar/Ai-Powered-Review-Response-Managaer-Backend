@@ -1,16 +1,32 @@
 const dotenv = require("dotenv");
 dotenv.config();
-const { GoogleGenAI } = require("@google/genai");
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+const { GoogleGenAI } = require("@google/genai");
+const reviewModel = require("../db/models/review.schema");
+const responseModel = require("../db/models/response.schema");
+
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY
+});
+
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 
 const generateAIResponse = async (req, res) => {
   try {
-    //user review input////
-    const {review}= req.body
-    // / propmpt for generateing review ///
-    const prompt = `You are a professional business representative.
+    const reviews = await reviewModel
+      .find()
+      .select("text -_id")
+      .lean();
+
+
+    const responses = [];
+
+    for (let i = 0; i < reviews.length; i++) {
+
+      const reviewText = reviews[i].text;
+
+      const prompt = `You are a professional business representative.
 
 Write a short, friendly, and personalized response to the customer review.
 
@@ -25,19 +41,50 @@ Rules:
 - Return only the response.
 
 Review:
-"${review}"
+"${reviewText}"
 `;
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-    // console.log(review);  
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt
+
+      const result = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt
+      });
+
+
+      console.log(result.text);
+
+
+      // Store response in MongoDB
+      await responseModel.create({
+        review: reviewText,
+        response: result.text
+      });
+
+
+      responses.push({
+        review: reviewText,
+        response: result.text
+      });
+
+
+      // wait 1 second before next Gemini request
+      await delay(1000);
+    }
+
+
+    res.json({
+      message: "Responses generated successfully",
+      data: responses
     });
-    res.json(response.text);
+
+
   } catch (error) {
     console.error("Error generating AI response:", error);
+
+    res.status(500).json({
+      message: "Failed to generate responses"
+    });
   }
 };
+
 
 module.exports = { generateAIResponse };
